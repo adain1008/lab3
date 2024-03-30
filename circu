@@ -1,0 +1,191 @@
+class ListNode:
+    def __init__(self, item=None, next_node=None):
+        self.item = item
+        self.next = next_node
+
+class CircularLinkedList:
+    def __init__(self):
+        self.__tail = None
+        self.__numItems = 0
+
+    def insert(self, i: int, newItem) -> None:
+        if i < 0 or i > self.__numItems:
+            print("index", i, ": out of bound in insert()")
+            return
+        if i == self.__numItems:
+            self.append(newItem)
+            return
+        if i == 0:
+            self.__tail.next = ListNode(newItem, self.__tail.next)
+        else:
+            prev = self.getNode(i - 1)
+            prev.next = ListNode(newItem, prev.next)
+        self.__numItems += 1
+
+    def append(self, newItem) -> None:
+        if self.isEmpty():
+            self.__tail = ListNode(newItem)
+            self.__tail.next = self.__tail
+        else:
+            new_node = ListNode(newItem, self.__tail.next)
+            self.__tail.next = new_node
+            self.__tail = new_node
+        self.__numItems += 1
+
+    def pop(self, i=-1):
+        if self.isEmpty():
+            return None
+        if i < 0 or i >= self.__numItems:
+            i = self.__numItems - 1
+        if i == 0:
+            ret_item = self.__tail.next.item
+            if self.__numItems == 1:
+                self.__tail = None
+            else:
+                self.__tail.next = self.__tail.next.next
+        else:
+            prev = self.getNode(i - 1)
+            ret_item = prev.next.item
+            prev.next = prev.next.next
+            if i == self.__numItems - 1:
+                self.__tail = prev
+        self.__numItems -= 1
+        return ret_item
+
+    def remove(self, x):
+        prev, curr = self.__findNode(x)
+        if curr is not None:
+            prev.next = curr.next
+            if curr == self.__tail:
+                self.__tail = prev
+            self.__numItems -= 1
+            return x
+        return None
+
+    def get(self, i=-1):
+        if self.isEmpty():
+            return None
+        if i < 0 or i >= self.__numItems:
+            i = self.__numItems - 1
+        return self.getNode(i).item
+
+    def index(self, x) -> int:
+        cnt = 0
+        current = self.__tail.next
+        while current != self.__tail:
+            if current.item == x:
+                return cnt
+            cnt += 1
+            current = current.next
+        if self.__tail.item == x:
+            return cnt
+        return -12345
+
+    def isEmpty(self) -> bool:
+        return self.__numItems == 0
+
+    def size(self) -> int:
+        return self.__numItems
+
+    def clear(self):
+        self.__tail = None
+        self.__numItems = 0
+
+    def count(self, x) -> int:
+        cnt = 0
+        current = self.__tail.next
+        while current != self.__tail:
+            if current.item == x:
+                cnt += 1
+            current = current.next
+        if self.__tail.item == x:
+            cnt += 1
+        return cnt
+
+    def extend(self, a):
+        for x in a:
+            self.append(x)
+
+    def copy(self) -> 'CircularLinkedList':
+        new_list = CircularLinkedList()
+        current = self.__tail.next
+        while current != self.__tail:
+            new_list.append(current.item)
+            current = current.next
+        new_list.append(self.__tail.item)
+        return new_list
+
+    def reverse(self) -> None:
+        if self.__numItems <= 1:
+            return
+        prev = None
+        current = self.__tail.next
+        self.__tail = current
+        while current != self.__tail:
+            next_node = current.next
+            current.next = prev
+            prev = current
+            current = next_node
+        current.next = prev
+
+    def sort(self) -> None:
+        a = [None] * self.__numItems
+        current = self.__tail.next
+        for i in range(self.__numItems):
+            a[i] = current.item
+            current = current.next
+        a.sort()
+        self.clear()
+        for item in a:
+            self.append(item)
+
+    def __findNode(self, x):
+        prev = None
+        current = self.__tail.next
+        while current != self.__tail:
+            if current.item == x:
+                return prev, current
+            prev = current
+            current = current.next
+        if self.__tail.item == x:
+            return prev, self.__tail
+        return None, None
+
+    def getNode(self, i: int):
+        if i < 0 or i >= self.__numItems:
+            return None
+        current = self.__tail.next
+        for _ in range(i):
+            current = current.next
+        return current
+
+    def printList(self) -> None:
+        current = self.__tail.next
+        while current != self.__tail:
+            print(current.item, end=' ')
+            current = current.next
+        if self.__tail is not None:
+            print(self.__tail.item, end=' ')
+        print()
+
+    def __iter__(self):
+        return CircularLinkedListIterator(self)
+
+    def __len__(self):
+        return self.__numItems
+
+
+class CircularLinkedListIterator:
+    def __init__(self, alist):
+        self.__head = alist.getNode(-1)
+        self.iterPosition = self.__head.next
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.iterPosition == self.__head:
+            raise StopIteration
+        item = self.iterPosition.item
+        self.iterPosition = self.iterPosition.next
+        return item
